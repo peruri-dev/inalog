@@ -12,6 +12,18 @@ Slog based logging in Golang customized for multiple purpose
 go get -v github.com/peruri-dev/inalog
 ```
 
+then put in main.go
+
+```
+inalog.Init(inalog.Cfg{
+    Source: true,
+})
+
+inalog.Log().Notice("hello")
+inalog.Log().Info("hello, this is simple info")
+inalog.Log().Error("got error!")
+```
+
 ## contribution
 
 1. Create new pull request 
