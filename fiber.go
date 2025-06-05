@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -46,7 +48,7 @@ func FiberCtxHttpBuilder(f *fiber.Ctx) map[string]interface{} {
 		"userAgent":       string(f.Request().Header.UserAgent()),
 		"sourceIp":        f.IP(),
 		"sourceIps":       f.IPs(),
-		"referer":         f.Request().Header.Referer(),
+		"referer":         string(f.Request().Header.Referer()),
 		"hostname":        f.Hostname(),
 		"X-Request-ID":    f.Get("X-Request-ID"),
 		"X-Forwarded-For": f.Get("X-Forwarded-For"),
@@ -59,6 +61,11 @@ func cleanJSONPrint(input string) string {
 }
 
 func FiberHTTPLog(param FiberHTTPLogParam) {
+	print, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
+	if !print {
+		return
+	}
+
 	fiberCtx := param.FiberCtx
 	data := FiberCtxHttpBuilder(fiberCtx)
 	getDuration := time.Since(param.StartTime)
@@ -73,15 +80,14 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 		data["req_body"] = cleanJSONPrint(string(fiberCtx.BodyRaw()))
 	}
 
-	print, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
-	if print {
-		LogWith(WithCfg{Ctx: context.WithValue(fiberCtx.Context(), CtxKeyHttp, data), Skip: 1}).
-			Notice(fmt.Sprintf(
-				"%s %s",
-				fiberCtx.Request().Header.Method(),
-				string(fiberCtx.Request().URI().Path()),
-			))
-	}
+	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
+
+	LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+		Notice(fmt.Sprintf(
+			"%s %s",
+			fiberCtx.Request().Header.Method(),
+			string(fiberCtx.Request().URI().Path()),
+		))
 }
 
 func FiberInheriCtx(f *fiber.Ctx) context.Context {
@@ -96,4 +102,30 @@ func FiberInheriCtx(f *fiber.Ctx) context.Context {
 	}
 
 	return ctx
+}
+
+func NewFiberMiddleware() fiber.Handler {
+	return func(f *fiber.Ctx) error {
+		startTime := time.Now()
+		err := f.Next()
+		FiberHTTPLog(FiberHTTPLogParam{
+			f,
+			startTime,
+		})
+		return err
+	}
+}
+
+func HttpHeaderToSlog(header http.Header) slog.Attr {
+	var headers []any
+	for key, values := range header {
+		if len(values) == 0 {
+			headers = append(headers, slog.Any(key, nil))
+		} else if len(values) == 1 {
+			headers = append(headers, slog.String(key, values[0]))
+		} else {
+			headers = append(headers, slog.Any(key, values))
+		}
+	}
+	return slog.Group("header", headers...)
 }

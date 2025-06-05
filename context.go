@@ -15,6 +15,8 @@ var CtxKeyHttp CtxKey = "http"
 var CtxKeyHttpRequest CtxKey = "httpRequest"
 var CtxKeyRequestID CtxKey = "requestId"
 var CtxKeyDevice CtxKey = "deviceContext"
+var CtxKeyTraceID CtxKey = "traceId"
+var CtxKeySpanID CtxKey = "spanId"
 
 // Put context here, to make it printable in log
 var CtxList = []CtxKey{
@@ -24,11 +26,19 @@ var CtxList = []CtxKey{
 	CtxKeyErrContext,
 	CtxKeyPayloadContext,
 	CtxKeyDevice,
-	"spanId",
-	"traceId",
+	CtxKeySpanID,
+	CtxKeyTraceID,
 	"span.id",
 	"trace.id",
 	"transaction.id",
+}
+
+type HookFunc func(ctx context.Context) []slog.Attr
+
+var hooks []HookFunc = []HookFunc{contextParser}
+
+func AddHook(fn HookFunc) {
+	hooks = append(hooks, fn)
 }
 
 func contextParser(ctx context.Context) []slog.Attr {

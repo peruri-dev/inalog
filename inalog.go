@@ -3,10 +3,15 @@ package inalog
 import (
 	"log/slog"
 	"os"
+	"time"
+
+	"github.com/lmittmann/tint"
 )
 
 type Cfg struct {
-	Source bool
+	Source     bool
+	Tinted     bool
+	MessageKey bool
 }
 
 const (
@@ -30,8 +35,13 @@ type noCfg struct{}
 
 var implementer *implement
 
-func Init(cfg Cfg) {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+type InalogHandler struct {
+	slog.Handler
+	skipCaller int
+}
+
+func createJsonHandler(cfg Cfg) slog.Handler {
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: cfg.Source,
 		Level:     slog.LevelDebug,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
@@ -44,10 +54,37 @@ func Init(cfg Cfg) {
 
 				a.Value = slog.StringValue(levelLabel)
 			}
+			if a.Key == slog.MessageKey && cfg.MessageKey {
+				a.Key = "message"
+			}
 
 			return a
 		},
-	}))
+	})
+
+	return handler
+}
+
+func createTintHandler(cfg Cfg) slog.Handler {
+	w := os.Stderr
+	handler := tint.NewHandler(w, &tint.Options{
+		AddSource:  cfg.Source,
+		Level:      slog.LevelDebug,
+		TimeFormat: time.Kitchen,
+	})
+	return handler
+}
+
+func Init(cfg Cfg) {
+	var handler slog.Handler
+
+	if cfg.Tinted {
+		handler = createTintHandler(cfg)
+	} else {
+		handler = createJsonHandler(cfg)
+	}
+	h := &InalogHandler{handler, 3}
+	logger := slog.New(h)
 
 	slog.SetDefault(logger)
 	implementer = &implement{

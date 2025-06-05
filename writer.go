@@ -56,7 +56,9 @@ func (w writer) logHandling(lvl slog.Level, msg string, attr ...any) {
 	if w.ctx == nil {
 		w.ctx = context.Background()
 	} else {
-		attrs = append(attrs, contextParser(w.ctx)...)
+		for _, hook := range hooks {
+			attrs = append(attrs, hook(w.ctx)...)
+		}
 	}
 
 	runtime.Callers(w.skipCaller, pcs[:])
@@ -67,4 +69,16 @@ func (w writer) logHandling(lvl slog.Level, msg string, attr ...any) {
 		w.ctx,
 		r,
 	)
+}
+
+func (h InalogHandler) Handle(ctx context.Context, r slog.Record) error {
+	attrs := []slog.Attr{}
+
+	for _, hook := range hooks {
+		attrs = append(attrs, hook(ctx)...)
+	}
+
+	r.AddAttrs(attrs...)
+
+	return h.Handler.Handle(ctx, r)
 }
