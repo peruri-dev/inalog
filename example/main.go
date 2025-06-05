@@ -25,8 +25,9 @@ func main() {
 	isJsonLog, _ := strconv.ParseBool(os.Getenv("JSON_LOG"))
 
 	inalog.Init(inalog.Cfg{
-		Source: true,
-		Tinted: !isJsonLog,
+		Source:     true,
+		Tinted:     !isJsonLog,
+		MessageKey: true,
 	})
 
 	inalog.AddHook(appNameExtract)
