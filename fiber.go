@@ -61,23 +61,48 @@ func cleanJSONPrint(input string) string {
 }
 
 func FiberHTTPLog(param FiberHTTPLogParam) {
+	statusPrintPayload, _ := strconv.ParseInt(os.Getenv("INALOG_STATUS_PAYLOAD"), 10, 64)
+	printPayload, _ := strconv.ParseBool(os.Getenv("INALOG_PRINT_PAYLOAD"))
 	print, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
 	if !print {
 		return
 	}
 
+	minStatusToPrint := int(100)
+	if statusPrintPayload > 100 {
+		minStatusToPrint = int(statusPrintPayload)
+	}
+
 	fiberCtx := param.FiberCtx
+
+	queries := fiberCtx.Queries()
+	enforced := false
+	forced, ok := queries["_InalogForcePrint"]
+	if ok {
+		enforced, _ = strconv.ParseBool(forced)
+	}
+
+	printBody := (fiberCtx.Response().StatusCode() >= minStatusToPrint && printPayload) || enforced
+	printHeaders := (fiberCtx.Response().StatusCode() >= minStatusToPrint && printPayload) || enforced
+	printQuery := (fiberCtx.Response().StatusCode() >= minStatusToPrint && printPayload) || enforced
+
 	data := FiberCtxHttpBuilder(fiberCtx)
 	getDuration := time.Since(param.StartTime)
 	data["duration"] = getDuration.String()
 	data["durationInMs"] = getDuration.Milliseconds()
 
-	if fiberCtx.Response().StatusCode() >= 100 {
-		queryStrings, _ := json.Marshal(fiberCtx.Queries())
-		reqHeaders, _ := json.Marshal(fiberCtx.GetReqHeaders())
-		data["query_params"] = cleanJSONPrint(string(queryStrings))
-		data["headers"] = cleanJSONPrint(string(reqHeaders))
+	if printBody {
 		data["req_body"] = cleanJSONPrint(string(fiberCtx.BodyRaw()))
+	}
+
+	if printHeaders {
+		reqHeaders, _ := json.Marshal(fiberCtx.GetReqHeaders())
+		data["headers"] = cleanJSONPrint(string(reqHeaders))
+	}
+
+	if printQuery {
+		queryStrings, _ := json.Marshal(fiberCtx.Queries())
+		data["query_params"] = cleanJSONPrint(string(queryStrings))
 	}
 
 	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
