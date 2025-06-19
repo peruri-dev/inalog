@@ -63,10 +63,8 @@ func cleanJSONPrint(input string) string {
 func FiberHTTPLog(param FiberHTTPLogParam) {
 	statusPrintPayload, _ := strconv.ParseInt(os.Getenv("INALOG_STATUS_PAYLOAD"), 10, 64)
 	printPayload, _ := strconv.ParseBool(os.Getenv("INALOG_PRINT_PAYLOAD"))
-	print, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
-	if !print {
-		return
-	}
+	printAccess, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
+	printError, _ := strconv.ParseBool(os.Getenv("INALOG_ERROR_LOG"))
 
 	minStatusToPrint := int(100)
 	if statusPrintPayload > 100 {
@@ -74,6 +72,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 	}
 
 	fiberCtx := param.FiberCtx
+	statusCode := fiberCtx.Response().StatusCode()
 
 	queries := fiberCtx.Queries()
 	enforced := false
@@ -82,9 +81,9 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 		enforced, _ = strconv.ParseBool(forced)
 	}
 
-	printBody := (fiberCtx.Response().StatusCode() >= minStatusToPrint && printPayload) || enforced
-	printHeaders := (fiberCtx.Response().StatusCode() >= minStatusToPrint && printPayload) || enforced
-	printQuery := (fiberCtx.Response().StatusCode() >= minStatusToPrint && printPayload) || enforced
+	printBody := (statusCode >= minStatusToPrint && printPayload) || enforced
+	printHeaders := (statusCode >= minStatusToPrint && printPayload) || enforced
+	printQuery := (statusCode >= minStatusToPrint && printPayload) || enforced
 
 	data := FiberCtxHttpBuilder(fiberCtx)
 	getDuration := time.Since(param.StartTime)
@@ -106,13 +105,23 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 	}
 
 	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
+	if printAccess && statusCode >= 200 && statusCode < 300 {
+		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+			Notice(fmt.Sprintf(
+				"%s %s",
+				fiberCtx.Request().Header.Method(),
+				string(fiberCtx.Request().URI().Path()),
+			))
+	}
 
-	LogWith(WithCfg{Ctx: ctx, Skip: 1}).
-		Notice(fmt.Sprintf(
-			"%s %s",
-			fiberCtx.Request().Header.Method(),
-			string(fiberCtx.Request().URI().Path()),
-		))
+	if printError && statusCode >= 300 {
+		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+			Notice(fmt.Sprintf(
+				"%s %s",
+				fiberCtx.Request().Header.Method(),
+				string(fiberCtx.Request().URI().Path()),
+			))
+	}
 }
 
 func FiberInheriCtx(f *fiber.Ctx) context.Context {
