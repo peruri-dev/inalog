@@ -61,33 +61,63 @@ func cleanJSONPrint(input string) string {
 }
 
 func FiberHTTPLog(param FiberHTTPLogParam) {
-	print, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
-	if !print {
-		return
-	}
+	printPayload, _ := strconv.ParseBool(os.Getenv("INALOG_PRINT_PAYLOAD"))
+	printAccess, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
+	printError, _ := strconv.ParseBool(os.Getenv("INALOG_ERROR_LOG"))
+
+	minStatusToPrint := int(100)
 
 	fiberCtx := param.FiberCtx
+	statusCode := fiberCtx.Response().StatusCode()
+
+	queries := fiberCtx.Queries()
+	enforced := false
+	forced, ok := queries["_InalogForcePrint"]
+	if ok {
+		enforced, _ = strconv.ParseBool(forced)
+	}
+
+	printBody := (statusCode >= minStatusToPrint && printPayload) || enforced
+	printHeaders := (statusCode >= minStatusToPrint && printPayload) || enforced
+	printQuery := (statusCode >= minStatusToPrint && printPayload) || enforced
+
 	data := FiberCtxHttpBuilder(fiberCtx)
 	getDuration := time.Since(param.StartTime)
 	data["duration"] = getDuration.String()
 	data["durationInMs"] = getDuration.Milliseconds()
 
-	if fiberCtx.Response().StatusCode() >= 100 {
-		queryStrings, _ := json.Marshal(fiberCtx.Queries())
-		reqHeaders, _ := json.Marshal(fiberCtx.GetReqHeaders())
-		data["query_params"] = cleanJSONPrint(string(queryStrings))
-		data["headers"] = cleanJSONPrint(string(reqHeaders))
+	if printBody {
 		data["req_body"] = cleanJSONPrint(string(fiberCtx.BodyRaw()))
 	}
 
-	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
+	if printHeaders {
+		reqHeaders, _ := json.Marshal(fiberCtx.GetReqHeaders())
+		data["headers"] = cleanJSONPrint(string(reqHeaders))
+	}
 
-	LogWith(WithCfg{Ctx: ctx, Skip: 1}).
-		Notice(fmt.Sprintf(
-			"%s %s",
-			fiberCtx.Request().Header.Method(),
-			string(fiberCtx.Request().URI().Path()),
-		))
+	if printQuery {
+		queryStrings, _ := json.Marshal(fiberCtx.Queries())
+		data["query_params"] = cleanJSONPrint(string(queryStrings))
+	}
+
+	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
+	if printAccess && statusCode >= 200 && statusCode < 300 {
+		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+			Notice(fmt.Sprintf(
+				"%s %s",
+				fiberCtx.Request().Header.Method(),
+				string(fiberCtx.Request().URI().Path()),
+			))
+	}
+
+	if printError && statusCode >= 300 {
+		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+			Notice(fmt.Sprintf(
+				"%s %s",
+				fiberCtx.Request().Header.Method(),
+				string(fiberCtx.Request().URI().Path()),
+			))
+	}
 }
 
 func FiberInheriCtx(f *fiber.Ctx) context.Context {
