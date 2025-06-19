@@ -61,15 +61,11 @@ func cleanJSONPrint(input string) string {
 }
 
 func FiberHTTPLog(param FiberHTTPLogParam) {
-	statusPrintPayload, _ := strconv.ParseInt(os.Getenv("INALOG_STATUS_PAYLOAD"), 10, 64)
 	printPayload, _ := strconv.ParseBool(os.Getenv("INALOG_PRINT_PAYLOAD"))
 	printAccess, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
 	printError, _ := strconv.ParseBool(os.Getenv("INALOG_ERROR_LOG"))
 
 	minStatusToPrint := int(100)
-	if statusPrintPayload > 100 {
-		minStatusToPrint = int(statusPrintPayload)
-	}
 
 	fiberCtx := param.FiberCtx
 	statusCode := fiberCtx.Response().StatusCode()
