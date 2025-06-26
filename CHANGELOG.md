@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/peruri-dev/inalog/compare/v1.2.1...v1.3.0) (2025-06-26)
+
+
+### Features
+
+* add conditional flag ([65b6345](https://github.com/peruri-dev/inalog/commit/65b63455e7aff39d3dc6d0b401439c544c660933))
+* add more customizable config ([3aa0cac](https://github.com/peruri-dev/inalog/commit/3aa0cac12a780b3451e3efc4f1589dec0d78b42b))
+* update readme ([32a98c1](https://github.com/peruri-dev/inalog/commit/32a98c1397514b6486ed705859b25fb93349a2f2))
+
+
+### Bug Fixes
+
+* reduce min status 100 ([f65c9d3](https://github.com/peruri-dev/inalog/commit/f65c9d30841b8c7bb08233b2b848b0bd67512ccf))
+
 ### [1.2.1](https://github.com/peruri-dev/inalog/compare/v1.2.0...v1.2.1) (2025-06-19)
 
 ## [1.2.0](https://github.com/peruri-dev/inalog/compare/v1.1.0...v1.2.0) (2025-06-05)
