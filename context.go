@@ -17,6 +17,7 @@ var CtxKeyRequestID CtxKey = "requestId"
 var CtxKeyDevice CtxKey = "deviceContext"
 var CtxKeyTraceID CtxKey = "traceId"
 var CtxKeySpanID CtxKey = "spanId"
+var CtxErrorTrace CtxKey = "errorTrace"
 
 // Put context here, to make it printable in log
 var CtxList = []CtxKey{
@@ -28,6 +29,7 @@ var CtxList = []CtxKey{
 	CtxKeyDevice,
 	CtxKeySpanID,
 	CtxKeyTraceID,
+	CtxErrorTrace,
 	"span.id",
 	"trace.id",
 	"transaction.id",
@@ -70,10 +72,14 @@ func ErrorCtx(err error) slog.Attr {
 	return slog.Any(string(CtxKeyErrContext), err)
 }
 
-func PayloadCtx(value interface{}) slog.Attr {
+func PayloadCtx(value any) slog.Attr {
 	return slog.Any(string(CtxKeyPayloadContext), value)
 }
 
-func AuditCtx(value interface{}) slog.Attr {
+func AuditCtx(value any) slog.Attr {
 	return slog.Any(string(CtxKeyAuditContext), value)
+}
+
+func ErrorTrace(value any) slog.Attr {
+	return slog.Any(string(CtxErrorTrace), value)
 }
