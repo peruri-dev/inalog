@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/peruri-dev/inalog/compare/v1.3.0...v1.4.0) (2025-07-13)
+
+
+### Features
+
+* error trace ([#3](https://github.com/peruri-dev/inalog/issues/3)) ([d5d3893](https://github.com/peruri-dev/inalog/commit/d5d3893329f3ae89a20c8024597cf6b6b5273b47))
+
 ## [1.3.0](https://github.com/peruri-dev/inalog/compare/v1.2.1...v1.3.0) (2025-06-26)
 
 
