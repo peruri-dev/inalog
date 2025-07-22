@@ -60,14 +60,14 @@ e.g.
 http://localhost:9000/my-api?_InalogForcePrint=true
 ```
 
-## contribution
+## Contribution
 
 1. Create new pull request
 2. Please follow conventional commit standard <https://www.conventionalcommits.org/en/v1.0.0/>
 3. There will be new release after PR merged
 4. So, that's why it should follow conventional commit
 
-## release new version
+## Release New Version
 
 1. Pull latest from main
 2. Use `npx standard-version` then push the along with the tag
