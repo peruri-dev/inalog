@@ -6,7 +6,7 @@ Slog based logging in Golang customized for multiple purpose
 
 - [x] fiber/v2
 
-## how to install
+## How to Install
 
 ```bash
 go get -v github.com/peruri-dev/inalog
@@ -25,6 +25,16 @@ inalog.Log().Notice("hello")
 inalog.Log().Info("hello, this is simple info")
 inalog.Log().Error("got error!")
 ```
+
+### Tinted
+
+When `true` will format as plain text colored, usually for local machine.
+
+![INAlog Tinted](./docs/inalog-tinted.png)
+
+When `false` will format as json, usually when on cloud.
+
+![INAlog JSON](./docs/inalog-json.png)
 
 ### Configuration
 
@@ -50,14 +60,14 @@ e.g.
 http://localhost:9000/my-api?_InalogForcePrint=true
 ```
 
-## contribution
+## Contribution
 
 1. Create new pull request
 2. Please follow conventional commit standard <https://www.conventionalcommits.org/en/v1.0.0/>
 3. There will be new release after PR merged
 4. So, that's why it should follow conventional commit
 
-## release new version
+## Release New Version
 
 1. Pull latest from main
 2. Use `npx standard-version` then push the along with the tag
