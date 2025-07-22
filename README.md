@@ -6,7 +6,7 @@ Slog based logging in Golang customized for multiple purpose
 
 - [x] fiber/v2
 
-## how to install
+## How to Install
 
 ```bash
 go get -v github.com/peruri-dev/inalog
@@ -25,6 +25,16 @@ inalog.Log().Notice("hello")
 inalog.Log().Info("hello, this is simple info")
 inalog.Log().Error("got error!")
 ```
+
+### Tinted
+
+When `true` will format as plain text colored, usually for local machine.
+
+![INAlog Tinted](./docs/inalog-tinted.png)
+
+When `false` will format as json, usually when on cloud.
+
+![INAlog JSON](./docs/inalog-json.png)
 
 ### Configuration
 
