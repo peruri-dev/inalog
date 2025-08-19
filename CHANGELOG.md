@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [1.5.0](https://github.com/peruri-dev/inalog/compare/v1.4.0...v1.5.0) (2025-08-19)
+
+
+### Features
+
+* bump go version 1.25.0 ([53e4648](https://github.com/peruri-dev/inalog/commit/53e4648116972db3416cebfb01808dc29b9b265e))
 
 ## [1.4.0](https://github.com/peruri-dev/inalog/compare/v1.3.0...v1.4.0) (2025-07-13)
 
