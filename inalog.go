@@ -26,6 +26,10 @@ var LevelNames = map[slog.Leveler]string{
 	LevelNotice: "NOTICE",
 	LevelFatal:  "FATAL",
 }
+var ShortLevelNames = map[slog.Leveler]string{
+	LevelNotice: "NOC",
+	LevelFatal:  "FAL",
+}
 
 type implement struct {
 	log *slog.Logger
@@ -71,6 +75,18 @@ func createTintHandler(cfg Cfg) slog.Handler {
 		AddSource:  cfg.Source,
 		Level:      slog.LevelDebug,
 		TimeFormat: time.Kitchen,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.LevelKey {
+				if level, ok := a.Value.Any().(slog.Level); ok {
+					if levelLabel, exists := ShortLevelNames[level]; exists {
+						return tint.Attr(13, slog.String(a.Key, levelLabel))
+					}
+				}
+				//a.Value = slog.StringValue(levelLabel)
+			}
+
+			return a
+		},
 	})
 	return handler
 }
