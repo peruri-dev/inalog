@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.0](https://github.com/peruri-dev/inalog/compare/v1.5.0...v1.6.0) (2025-09-13)
+
+
+### Features
+
+* colored notice for tint, better http context, safe print for non-json request body ([#5](https://github.com/peruri-dev/inalog/issues/5)) ([9eeacd4](https://github.com/peruri-dev/inalog/commit/9eeacd4ebc87522014a1baae88ca80322342c90c))
+
 ## [1.5.0](https://github.com/peruri-dev/inalog/compare/v1.4.0...v1.5.0) (2025-08-19)
 
 
