@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
 )
 
 type FiberHTTPLogParam struct {
@@ -39,6 +40,17 @@ func FiberCtxDeviceBuilder(f *fiber.Ctx) map[string]interface{} {
 	}
 }
 
+func FiberCtxContentType(f *fiber.Ctx) string {
+	ctype := utils.ToLower(string(f.Request().Header.ContentType()))
+	ctype = utils.ParseVendorSpecificContentType(ctype)
+	// Only use ctype string up to and excluding byte ';'
+	ctypeEnd := strings.IndexByte(ctype, ';')
+	if ctypeEnd != -1 {
+		ctype = ctype[:ctypeEnd]
+	}
+	return ctype
+}
+
 func FiberCtxHttpBuilder(f *fiber.Ctx) map[string]interface{} {
 	return map[string]interface{}{
 		"method":          f.Method(),
@@ -60,10 +72,26 @@ func cleanJSONPrint(input string) string {
 	return strings.NewReplacer("\n", "", "\t", "", "\\", "", "\"", "'").Replace(input)
 }
 
+func safeString(b []byte) string {
+	out := make([]rune, 0, len(b))
+	for _, r := range b {
+		if r >= 32 && r <= 126 {
+			out = append(out, rune(r))
+		} else {
+			out = append(out, '.') // replace non-printable
+		}
+	}
+	return string(out)
+}
+
 func FiberHTTPLog(param FiberHTTPLogParam) {
 	printPayload, _ := strconv.ParseBool(os.Getenv("INALOG_PRINT_PAYLOAD"))
 	printAccess, _ := strconv.ParseBool(os.Getenv("INALOG_ACCESS_LOG"))
 	printError, _ := strconv.ParseBool(os.Getenv("INALOG_ERROR_LOG"))
+	limitPayload, _ := strconv.Atoi(os.Getenv("INALOG_LIMIT_PAYLOAD"))
+	if limitPayload <= 0 {
+		limitPayload = 1024
+	}
 
 	minStatusToPrint := int(100)
 
@@ -87,7 +115,16 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 	data["durationInMs"] = getDuration.Milliseconds()
 
 	if printBody {
-		data["req_body"] = cleanJSONPrint(string(fiberCtx.BodyRaw()))
+		b := fiberCtx.BodyRaw()
+		cType := FiberCtxContentType(fiberCtx)
+		data["req_type"] = cType
+		if strings.HasSuffix(cType, "json") {
+			data["req_body"] = cleanJSONPrint(string(b))
+		} else if len(b) < limitPayload {
+			data["req_body"] = safeString(b)
+		} else {
+			data["req_body"] = safeString(b[:limitPayload]) + "...(truncated)"
+		}
 	}
 
 	if printHeaders {

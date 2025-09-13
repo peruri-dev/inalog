@@ -46,11 +46,19 @@ func AddHook(fn HookFunc) {
 func contextParser(ctx context.Context) []slog.Attr {
 	ctxDecorator := []slog.Attr{}
 
-	for _, v := range CtxList {
-		ctxVal := ctx.Value(v)
+	for _, k := range CtxList {
+		ctxVal := ctx.Value(k)
 
 		if ctxVal != nil {
-			ctxDecorator = append(ctxDecorator, slog.Any(string(v), ctxVal))
+			if data, ok := ctxVal.(map[string]interface{}); ok {
+				attrs := []any{}
+				for kk, vv := range data {
+					attrs = append(attrs, slog.Any(kk, vv))
+				}
+				ctxDecorator = append(ctxDecorator, slog.Group(string(k), attrs...))
+			} else {
+				ctxDecorator = append(ctxDecorator, slog.Any(string(k), ctxVal))
+			}
 		}
 	}
 
