@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/lmittmann/tint v1.1.2
-	github.com/peruri-dev/inalog v1.6.0
+	github.com/peruri-dev/inalog v1.7.0
 )
 
 require (
@@ -17,6 +17,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.65.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	github.com/valyala/fasthttp v1.66.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
 )
