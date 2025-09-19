@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.7.0](https://github.com/peruri-dev/inalog/compare/v1.6.0...v1.7.0) (2025-09-19)
+
+
+### Features
+
+* update inalog, to default using slog json and text ([12b940b](https://github.com/peruri-dev/inalog/commit/12b940bec96e553561b85be1bdb713f9d3e7f36d))
+
 ## [1.6.0](https://github.com/peruri-dev/inalog/compare/v1.5.0...v1.6.0) (2025-09-13)
 
 
