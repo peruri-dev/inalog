@@ -22,13 +22,16 @@ func appNameExtract(ctx context.Context) []slog.Attr {
 }
 
 func main() {
+
 	isJsonLog, _ := strconv.ParseBool(os.Getenv("JSON_LOG"))
 
-	inalog.Init(inalog.Cfg{
+	cfg := inalog.Cfg{
 		Source:     true,
-		Tinted:     !isJsonLog,
+		TextLog:    !isJsonLog,
 		MessageKey: true,
-	})
+	}
+
+	inalog.Init(cfg)
 
 	inalog.AddHook(appNameExtract)
 
@@ -38,4 +41,7 @@ func main() {
 
 	ctx := context.WithValue(context.Background(), ctxAppName{}, "example-inalog")
 	slog.ErrorContext(ctx, "Error", slog.String("key", "value"))
+
+	inalog.Log().Notice("POST /pingz")
+	inalog.LogWith(inalog.WithCfg{Ctx: ctx}).Notice("GET /healthz")
 }

@@ -3,14 +3,12 @@ package inalog
 import (
 	"log/slog"
 	"os"
-	"time"
-
-	"github.com/lmittmann/tint"
 )
 
 type Cfg struct {
 	Source     bool
-	Tinted     bool
+	TextLog    bool
+	CustomFunc func(Cfg) slog.Handler
 	MessageKey bool
 }
 
@@ -69,33 +67,13 @@ func createJsonHandler(cfg Cfg) slog.Handler {
 	return handler
 }
 
-func createTintHandler(cfg Cfg) slog.Handler {
-	w := os.Stderr
-	handler := tint.NewHandler(w, &tint.Options{
-		AddSource:  cfg.Source,
-		Level:      slog.LevelDebug,
-		TimeFormat: time.Kitchen,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			if a.Key == slog.LevelKey {
-				if level, ok := a.Value.Any().(slog.Level); ok {
-					if levelLabel, exists := ShortLevelNames[level]; exists {
-						return tint.Attr(13, slog.String(a.Key, levelLabel))
-					}
-				}
-				//a.Value = slog.StringValue(levelLabel)
-			}
-
-			return a
-		},
-	})
-	return handler
-}
-
 func Init(cfg Cfg) {
 	var handler slog.Handler
 
-	if cfg.Tinted {
-		handler = createTintHandler(cfg)
+	if cfg.CustomFunc != nil {
+		handler = cfg.CustomFunc(cfg)
+	} else if cfg.TextLog {
+		handler = createTextHandler(cfg)
 	} else {
 		handler = createJsonHandler(cfg)
 	}
