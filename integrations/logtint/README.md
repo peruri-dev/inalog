@@ -3,6 +3,8 @@
 logtint using github.com/lmittmann/tint package to
 log with colored text.
 
+![INAlog Tinted](./docs/inalog-tinted.png)
+
 ## Usage
 
 ```go

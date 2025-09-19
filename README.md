@@ -16,8 +16,8 @@ then put in main.go
 
 ```go
 inalog.Init(inalog.Cfg{
-    Source: true,
-    Tinted: true,
+    Source:     true,
+    TextLog:    true,
     MessageKey: true,
 })
 
@@ -26,13 +26,8 @@ inalog.Log().Info("hello, this is simple info")
 inalog.Log().Error("got error!")
 ```
 
-### Tinted
-
-When `true` will format as plain text colored, usually for local machine.
-
-![INAlog Tinted](./docs/inalog-tinted.png)
-
-When `false` will format as json, usually when on cloud.
+By default the log will using json format, instead when
+`TextLog` set true, it will use default slog text format.
 
 ![INAlog JSON](./docs/inalog-json.png)
 
