@@ -2,6 +2,7 @@ package inalog
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -27,6 +28,13 @@ type ExpectedSourceJSON struct {
 	Line     int    `json:"line"`
 }
 
+type ExpectedCodeJSON struct {
+	Function  string `json:"function"`  // semconv.CodeFunctionNameKey
+	File      string `json:"filepath"`  // semconv.CodeFilePathKey
+	Line      int    `json:"lineno"`    // semconv.CodeLineNumberKey
+	Namespace string `json:"namespace"` // semconv.CodeNamespaceKey
+}
+
 type ExpectedServiceJSON struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
@@ -45,6 +53,7 @@ type ExpectedJSON struct {
 	RequestId string              `json:"requestId"`
 	TraceId   string              `json:"traceId"`
 	SpanId    string              `json:"spanId"`
+	Code      ExpectedCodeJSON    `json:"code"`
 }
 
 func TestInalog(t *testing.T) {
@@ -64,6 +73,7 @@ func TestInalog(t *testing.T) {
 	})
 
 	assert.NotEmpty(output)
+	fmt.Println(string(output))
 
 	var jsonOutput ExpectedJSON
 	err := json.Unmarshal(output, &jsonOutput)
@@ -73,7 +83,7 @@ func TestInalog(t *testing.T) {
 	assert.Equal("this is informative", jsonOutput.Msg)
 	assert.Contains(jsonOutput.Source.File, "/inalog_test.go")
 	assert.Contains(jsonOutput.Source.Function, "/inalog.TestInalog.")
-	assert.Equal(62, jsonOutput.Source.Line)
+	assert.Equal(71, jsonOutput.Source.Line)
 
 	assert.Equal("example-app", jsonOutput.Service.Name)
 	assert.Equal("testing", jsonOutput.Service.Env)
@@ -93,10 +103,40 @@ func TestInalogCfgMessageKey(t *testing.T) {
 	})
 
 	assert.NotEmpty(output)
+	fmt.Println(string(output))
+
 	var jsonOutput ExpectedJSON
 	err := json.Unmarshal(output, &jsonOutput)
 	assert.NoError(err)
 
 	assert.Equal("WARN", jsonOutput.Level)
 	assert.Equal("this is warning", jsonOutput.Message)
+}
+
+func TestInalogSourceOtel(t *testing.T) {
+	assert := assert.New(t)
+
+	now := time.Now()
+	output, _ := captureOutput(func() error {
+		t.Setenv("INALOG_LOG_LEVEL", "INFO")
+		Init(Cfg{
+			Source:     true,
+			SourceOtel: true,
+		})
+		Log().Info("this is informative")
+		return nil
+	})
+
+	assert.NotEmpty(output)
+	fmt.Println(string(output))
+
+	var jsonOutput ExpectedJSON
+	err := json.Unmarshal(output, &jsonOutput)
+	assert.NoError(err)
+	assert.WithinDuration(now, jsonOutput.Time, 5*time.Second)
+	assert.Equal("INFO", jsonOutput.Level)
+	assert.Equal("this is informative", jsonOutput.Msg)
+	assert.Contains(jsonOutput.Code.File, "/inalog_test.go")
+	assert.Contains(jsonOutput.Code.Function, "/inalog.TestInalogSourceOtel.")
+	assert.Equal(123, jsonOutput.Code.Line)
 }

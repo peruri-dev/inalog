@@ -10,6 +10,7 @@ type Cfg struct {
 	TextLog    bool
 	CustomFunc func(Cfg) slog.Handler
 	MessageKey bool
+	SourceOtel bool
 }
 
 const (
@@ -47,7 +48,8 @@ func createJsonHandler(cfg Cfg) slog.Handler {
 		AddSource: cfg.Source,
 		Level:     slog.LevelDebug,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			if a.Key == slog.LevelKey {
+			switch {
+			case a.Key == slog.LevelKey:
 				level := a.Value.Any().(slog.Level)
 				levelLabel, exists := LevelNames[level]
 				if !exists {
@@ -55,11 +57,20 @@ func createJsonHandler(cfg Cfg) slog.Handler {
 				}
 
 				a.Value = slog.StringValue(levelLabel)
-			}
-			if a.Key == slog.MessageKey && cfg.MessageKey {
+			case len(groups) == 0 && a.Key == slog.MessageKey && cfg.MessageKey:
 				a.Key = "message"
 			}
 
+			if cfg.SourceOtel {
+				switch {
+				case len(groups) == 0 && a.Key == slog.SourceKey:
+					a.Key = "code"
+				case len(groups) == 0 && a.Key == "file":
+					a.Key = "filepath"
+				case len(groups) == 0 && a.Key == "line":
+					a.Key = "lineno"
+				}
+			}
 			return a
 		},
 	})
