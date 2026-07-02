@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -51,4 +52,18 @@ func ExternalHTTPCallLog(param ExternalHTTPCallLogParam) {
 			param.Response.Request.Method,
 			param.Response.Request.URL.Path,
 		))
+}
+
+func HttpHeaderToSlog(header http.Header) slog.Attr {
+	var headers []any
+	for key, values := range header {
+		if len(values) == 0 {
+			headers = append(headers, slog.Any(key, nil))
+		} else if len(values) == 1 {
+			headers = append(headers, slog.String(key, values[0]))
+		} else {
+			headers = append(headers, slog.Any(key, values))
+		}
+	}
+	return slog.Group("header", headers...)
 }
