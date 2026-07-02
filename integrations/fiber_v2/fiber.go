@@ -138,7 +138,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 		data["query_params"] = cleanJSONPrint(string(queryStrings))
 	}
 
-	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
+	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), inalog.CtxKeyHttp, data)
 	if printAccess && statusCode >= 200 && statusCode < 300 {
 		inalog.LogWith(inalog.WithCfg{Ctx: ctx, Skip: 1}).
 			Notice(fmt.Sprintf(
@@ -161,7 +161,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 func FiberInheriCtx(f *fiber.Ctx) context.Context {
 	ctx := context.Background()
 
-	for _, v := range CtxList {
+	for _, v := range inalog.CtxList {
 		ctxVal := f.Context().Value(v)
 
 		if ctxVal != nil {
