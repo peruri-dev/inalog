@@ -2,55 +2,18 @@ package inalog
 
 import (
 	"encoding/json"
-	"io"
-	"os"
 	"testing"
 	"time"
 
+	"github.com/peruri-dev/inalog/testhelper"
 	"github.com/stretchr/testify/assert"
 )
-
-func captureOutput(f func() error) ([]byte, error) {
-	orig := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	err := f()
-	os.Stdout = orig
-	w.Close()
-	out, _ := io.ReadAll(r)
-	return out, err
-}
-
-type ExpectedSourceJSON struct {
-	Function string `json:"function"`
-	File     string `json:"file"`
-	Line     int    `json:"line"`
-}
-
-type ExpectedServiceJSON struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Env     string `json:"env"`
-	Pid     int    `json:"pid"`
-}
-
-type ExpectedJSON struct {
-	Time      time.Time           `json:"time"`
-	Level     string              `json:"level"`
-	Source    ExpectedSourceJSON  `json:"source"`
-	Msg       string              `json:"msg"`
-	Message   string              `json:"message"`
-	Service   ExpectedServiceJSON `json:"service"`
-	RequestId string              `json:"requestId"`
-	TraceId   string              `json:"traceId"`
-	SpanId    string              `json:"spanId"`
-}
 
 func TestInalog(t *testing.T) {
 	assert := assert.New(t)
 
 	now := time.Now()
-	output, _ := captureOutput(func() error {
+	output, _ := testhelper.CaptureOutput(func() error {
 		t.Setenv("INALOG_SERVICE_VERSION", "v0.0.0-beta")
 		t.Setenv("INALOG_SERVICE_NAME", "example-app")
 		t.Setenv("INALOG_SERVICE_ENV", "testing")
@@ -64,7 +27,7 @@ func TestInalog(t *testing.T) {
 
 	assert.NotEmpty(output)
 
-	var jsonOutput ExpectedJSON
+	var jsonOutput testhelper.ExpectedJSON
 	err := json.Unmarshal(output, &jsonOutput)
 	assert.NoError(err)
 	assert.WithinDuration(now, jsonOutput.Time, 5*time.Second)
@@ -72,7 +35,7 @@ func TestInalog(t *testing.T) {
 	assert.Equal("this is informative", jsonOutput.Msg)
 	assert.Contains(jsonOutput.Source.File, "/inalog_test.go")
 	assert.Contains(jsonOutput.Source.Function, "/inalog.TestInalog.")
-	assert.Equal(61, jsonOutput.Source.Line)
+	assert.Equal(24, jsonOutput.Source.Line)
 
 	assert.Equal("example-app", jsonOutput.Service.Name)
 	assert.Equal("testing", jsonOutput.Service.Env)
@@ -83,7 +46,7 @@ func TestInalog(t *testing.T) {
 func TestInalogCfgMessageKey(t *testing.T) {
 	assert := assert.New(t)
 
-	output, _ := captureOutput(func() error {
+	output, _ := testhelper.CaptureOutput(func() error {
 		Init(Cfg{
 			MessageKey: true,
 		})
@@ -92,7 +55,7 @@ func TestInalogCfgMessageKey(t *testing.T) {
 	})
 
 	assert.NotEmpty(output)
-	var jsonOutput ExpectedJSON
+	var jsonOutput testhelper.ExpectedJSON
 	err := json.Unmarshal(output, &jsonOutput)
 	assert.NoError(err)
 
