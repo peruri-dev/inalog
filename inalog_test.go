@@ -41,7 +41,6 @@ type ExpectedJSON struct {
 	Msg       string              `json:"msg"`
 	Message   string              `json:"message"`
 	Service   ExpectedServiceJSON `json:"service"`
-	HTTP      ExpectedHTTPJSON    `json:"http"`
 	RequestId string              `json:"requestId"`
 	TraceId   string              `json:"traceId"`
 	SpanId    string              `json:"spanId"`
@@ -73,7 +72,7 @@ func TestInalog(t *testing.T) {
 	assert.Equal("this is informative", jsonOutput.Msg)
 	assert.Contains(jsonOutput.Source.File, "/inalog_test.go")
 	assert.Contains(jsonOutput.Source.Function, "/inalog.TestInalog.")
-	assert.Equal(62, jsonOutput.Source.Line)
+	assert.Equal(61, jsonOutput.Source.Line)
 
 	assert.Equal("example-app", jsonOutput.Service.Name)
 	assert.Equal("testing", jsonOutput.Service.Env)

@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
+	"github.com/peruri-dev/inalog"
 )
 
 type FiberHTTPLogParam struct {
@@ -139,7 +140,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 
 	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
 	if printAccess && statusCode >= 200 && statusCode < 300 {
-		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+		inalog.LogWith(inalog.WithCfg{Ctx: ctx, Skip: 1}).
 			Notice(fmt.Sprintf(
 				"%s %s",
 				fiberCtx.Request().Header.Method(),
@@ -148,7 +149,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 	}
 
 	if printError && statusCode >= 300 {
-		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+		inalog.LogWith(inalog.WithCfg{Ctx: ctx, Skip: 1}).
 			Notice(fmt.Sprintf(
 				"%s %s",
 				fiberCtx.Request().Header.Method(),
