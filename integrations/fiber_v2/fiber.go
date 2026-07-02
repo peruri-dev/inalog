@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
+	"github.com/peruri-dev/inalog"
 )
 
 type FiberHTTPLogParam struct {
@@ -137,9 +138,9 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 		data["query_params"] = cleanJSONPrint(string(queryStrings))
 	}
 
-	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), CtxKeyHttp, data)
+	ctx := context.WithValue(WithFiberCtx(fiberCtx.Context()), inalog.CtxKeyHttp, data)
 	if printAccess && statusCode >= 200 && statusCode < 300 {
-		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+		inalog.LogWith(inalog.WithCfg{Ctx: ctx, Skip: 1}).
 			Notice(fmt.Sprintf(
 				"%s %s",
 				fiberCtx.Request().Header.Method(),
@@ -148,7 +149,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 	}
 
 	if printError && statusCode >= 300 {
-		LogWith(WithCfg{Ctx: ctx, Skip: 1}).
+		inalog.LogWith(inalog.WithCfg{Ctx: ctx, Skip: 1}).
 			Notice(fmt.Sprintf(
 				"%s %s",
 				fiberCtx.Request().Header.Method(),
@@ -160,7 +161,7 @@ func FiberHTTPLog(param FiberHTTPLogParam) {
 func FiberInheriCtx(f *fiber.Ctx) context.Context {
 	ctx := context.Background()
 
-	for _, v := range CtxList {
+	for _, v := range inalog.CtxList {
 		ctxVal := f.Context().Value(v)
 
 		if ctxVal != nil {
