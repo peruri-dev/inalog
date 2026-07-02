@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
-	github.com/peruri-dev/inalog v0.0.0-00010101000000-000000000000
+	github.com/peruri-dev/inalog v1.8.0
 	github.com/stretchr/testify v1.10.0
 )
 
